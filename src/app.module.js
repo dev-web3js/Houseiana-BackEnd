@@ -12,6 +12,8 @@ import { UploadModule } from './modules/upload/upload.module.js';
 import { VerificationModule } from './modules/verification/verification.module.js';
 import { ReviewsModule } from './modules/reviews/reviews.module.js';
 import { HealthModule } from './modules/health/health.module.js';
+import { EmailModule } from './modules/email/email.module.js';
+import { TaxFormsModule } from './modules/tax-forms/tax-forms.module.js';
 import { LoggerMiddleware } from './common/middleware/logger.middleware.js';
 import { RolesGuard } from './common/guards/roles.guard.js';
 
@@ -30,6 +32,8 @@ import { RolesGuard } from './common/guards/roles.guard.js';
     VerificationModule,
     ReviewsModule,
     HealthModule,
+    EmailModule,
+    TaxFormsModule,
   ],
   controllers: [AppController],
   providers: [

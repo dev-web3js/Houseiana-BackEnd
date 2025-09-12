@@ -22,17 +22,31 @@ export class VerificationController {
     return this.verificationService.verifyEmail(req.user.id, body.code);
   }
 
-  // Send phone verification
+  // Send phone verification (new endpoint structure)
+  @Post('phone-verification/send')
+  @UseGuards(JwtStrategy)
+  async sendPhoneVerificationCode(@Request() req, @Body() body) {
+    return this.verificationService.sendPhoneVerificationCode(req.user.id, body.phoneNumber, body.method || 'sms');
+  }
+
+  // Verify phone (new endpoint structure)
+  @Post('phone-verification/verify')
+  @UseGuards(JwtStrategy)
+  async verifyPhoneCode(@Request() req, @Body() body) {
+    return this.verificationService.verifyPhoneCode(req.user.id, body.phoneNumber, body.code);
+  }
+
+  // Send phone verification (legacy support)
   @Post('phone/send')
   @UseGuards(JwtStrategy)
   async sendPhoneVerification(@Request() req, @Body() body) {
-    return this.verificationService.sendPhoneVerification(req.user.id, body.phoneNumber);
+    return this.verificationService.sendPhoneVerificationCode(req.user.id, body.phoneNumber, body.method || 'sms');
   }
 
-  // Verify phone
+  // Verify phone (legacy support)
   @Post('phone/verify')
   @UseGuards(JwtStrategy)
   async verifyPhone(@Request() req, @Body() body) {
-    return this.verificationService.verifyPhone(req.user.id, body.code);
+    return this.verificationService.verifyPhoneCode(req.user.id, body.phoneNumber, body.code);
   }
 }

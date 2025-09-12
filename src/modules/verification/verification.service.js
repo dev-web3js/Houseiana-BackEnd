@@ -1,10 +1,12 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service.js';
+import { EmailService } from '../email/email.service.js';
 
 @Injectable()
 export class VerificationService {
-  constructor(prisma) {
+  constructor(prisma, emailService) {
     this.prisma = prisma;
+    this.emailService = emailService;
   }
 
   // Send email verification
@@ -26,7 +28,7 @@ export class VerificationService {
     // For now, we'll just simulate the process
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Store verification code (you might want to use a separate table for this)
+    // Store verification code
     await this.prisma.user.update({
       where: { id: userId },
       data: {
@@ -35,8 +37,22 @@ export class VerificationService {
       },
     });
 
+    // Send verification email
+    try {
+      await this.emailService.sendVerificationEmail(
+        user.email,
+        verificationCode,
+        user.firstName || user.name
+      );
+    } catch (error) {
+      console.error('Failed to send verification email:', error);
+      // Still return success since the code was stored
+    }
+
     return {
+      success: true,
       message: 'Verification email sent successfully',
+      email: user.email,
       // In production, don't return the code
       code: verificationCode,
     };
@@ -83,8 +99,8 @@ export class VerificationService {
     return updatedUser;
   }
 
-  // Send phone verification
-  async sendPhoneVerification(userId, phoneNumber) {
+  // Send phone verification with method support
+  async sendPhoneVerificationCode(userId, phoneNumber, method = 'sms') {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -93,8 +109,8 @@ export class VerificationService {
       throw new NotFoundException('User not found');
     }
 
-    // In a real app, you'd send an SMS here
-    const verificationCode = Math.floor(1000 + Math.random() * 9000).toString();
+    // Generate 6-digit verification code as expected by frontend
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
 
     await this.prisma.user.update({
       where: { id: userId },
@@ -102,18 +118,32 @@ export class VerificationService {
         phone: phoneNumber,
         phoneVerificationCode: verificationCode,
         phoneVerificationExpires: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes
+        phoneVerificationMethod: method,
       },
     });
 
+    // In a real app, you'd integrate with SMS/WhatsApp services here
+    const message = method === 'whatsapp' 
+      ? 'WhatsApp verification code sent successfully'
+      : 'SMS verification code sent successfully';
+
     return {
-      message: 'SMS verification code sent successfully',
+      success: true,
+      message,
+      method,
+      phoneNumber,
       // In production, don't return the code
       code: verificationCode,
     };
   }
 
-  // Verify phone
-  async verifyPhone(userId, code) {
+  // Legacy method for backward compatibility
+  async sendPhoneVerification(userId, phoneNumber) {
+    return this.sendPhoneVerificationCode(userId, phoneNumber, 'sms');
+  }
+
+  // Verify phone with enhanced response format
+  async verifyPhoneCode(userId, phoneNumber, code) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -123,15 +153,30 @@ export class VerificationService {
     }
 
     if (user.phoneVerified) {
-      throw new BadRequestException('Phone is already verified');
+      return {
+        success: true,
+        verified: true,
+        message: 'Phone is already verified',
+        phoneNumber: user.phone,
+      };
     }
 
     if (user.phoneVerificationCode !== code) {
-      throw new BadRequestException('Invalid verification code');
+      return {
+        success: false,
+        verified: false,
+        message: 'Invalid verification code',
+        phoneNumber,
+      };
     }
 
     if (user.phoneVerificationExpires < new Date()) {
-      throw new BadRequestException('Verification code has expired');
+      return {
+        success: false,
+        verified: false,
+        message: 'Verification code has expired',
+        phoneNumber,
+      };
     }
 
     const updatedUser = await this.prisma.user.update({
@@ -150,6 +195,26 @@ export class VerificationService {
       },
     });
 
-    return updatedUser;
+    return {
+      success: true,
+      verified: true,
+      message: 'Phone verified successfully',
+      phoneNumber: updatedUser.phone,
+      verifiedAt: updatedUser.phoneVerifiedAt,
+    };
+  }
+
+  // Legacy method for backward compatibility
+  async verifyPhone(userId, code) {
+    const result = await this.verifyPhoneCode(userId, null, code);
+    if (!result.success) {
+      throw new BadRequestException(result.message);
+    }
+    return {
+      id: userId,
+      phone: result.phoneNumber,
+      phoneVerified: result.verified,
+      phoneVerifiedAt: result.verifiedAt,
+    };
   }
 }
