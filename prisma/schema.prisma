@@ -1,0 +1,1211 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Amenity {
+  id              String          @id
+  categoryId      String
+  name            String
+  description     String?
+  icon            String?
+  isPremium       Boolean         @default(false)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime
+  AmenityCategory AmenityCategory @relation(fields: [categoryId], references: [id])
+
+  @@unique([categoryId, name])
+  @@index([categoryId])
+}
+
+model AmenityCategory {
+  id        String    @id
+  name      String    @unique
+  icon      String?
+  order     Int       @default(0)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime
+  Amenity   Amenity[]
+}
+
+model Availability {
+  id        String   @id
+  listingId String
+  date      DateTime @db.Date
+  available Boolean  @default(true)
+  price     Decimal? @db.Decimal(10, 2)
+  minNights Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  Listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([listingId, date])
+  @@index([available])
+  @@index([listingId, date])
+}
+
+model BankAccount {
+  id                String    @id
+  userId            String
+  bankName          String
+  accountNumber     String
+  accountHolderName String
+  iban              String?
+  swiftCode         String?
+  routingNumber     String?
+  branchCode        String?
+  bankAddress       String?
+  accountType       String    @default("savings")
+  currency          String    @default("QAR")
+  isDefault         Boolean   @default(false)
+  isActive          Boolean   @default(true)
+  isVerified        Boolean   @default(false)
+  verifiedAt        DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime
+  User              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, accountNumber, bankName])
+  @@index([isDefault])
+  @@index([userId])
+}
+
+model Booking {
+  id                         String         @id
+  bookingCode                String         @unique
+  listingId                  String
+  guestId                    String
+  hostId                     String?
+  checkIn                    DateTime       @db.Date
+  checkOut                   DateTime       @db.Date
+  adults                     Int
+  children                   Int            @default(0)
+  infants                    Int            @default(0)
+  pets                       Int            @default(0)
+  nightlyRate                Decimal        @db.Decimal(10, 2)
+  totalNights                Int
+  subtotal                   Decimal        @db.Decimal(10, 2)
+  cleaningFee                Decimal        @default(0) @db.Decimal(10, 2)
+  serviceFee                 Decimal        @default(0) @db.Decimal(10, 2)
+  taxes                      Decimal        @default(0) @db.Decimal(10, 2)
+  discount                   Decimal        @default(0) @db.Decimal(10, 2)
+  totalPrice                 Decimal        @db.Decimal(10, 2)
+  totalAmount                Decimal?       @db.Decimal(10, 2)
+  guests                     Int?
+  securityDeposit            Decimal?       @db.Decimal(10, 2)
+  depositPaid                Boolean        @default(false)
+  depositRefunded            Boolean        @default(false)
+  depositRefundedAt          DateTime?
+  paymentStatus              PaymentStatus  @default(PENDING)
+  paymentMethod              String?
+  paymentId                  String?
+  paidAt                     DateTime?
+  paymentIntentId            String?
+  status                     BookingStatus  @default(PENDING)
+  confirmedAt                DateTime?
+  cancelledAt                DateTime?
+  cancelledBy                String?
+  cancelReason               String?
+  completedAt                DateTime?
+  actualCheckIn              DateTime?
+  actualCheckOut             DateTime?
+  guestMessage               String?
+  specialRequests            String?
+  arrivalTime                String?
+  guestPhone                 String?
+  guestEmail                 String?
+  hostMessage                String?
+  hostNotes                  String?
+  source                     String?
+  ip                         String?
+  userAgent                  String?
+  createdAt                  DateTime       @default(now())
+  updatedAt                  DateTime
+  User_Booking_guestIdToUser User           @relation("Booking_guestIdToUser", fields: [guestId], references: [id])
+  User_Booking_hostIdToUser  User?          @relation("Booking_hostIdToUser", fields: [hostId], references: [id])
+  Listing                    Listing        @relation(fields: [listingId], references: [id])
+  Conversation               Conversation[]
+  Invoice                    Invoice?
+  Notification               Notification[]
+  Payment                    Payment?
+  Review                     Review?
+  Transaction                Transaction[]
+
+  @@index([bookingCode])
+  @@index([guestId])
+  @@index([listingId, checkIn, checkOut])
+  @@index([paymentStatus])
+  @@index([status])
+}
+
+model CalendarBlock {
+  id        String   @id
+  listingId String
+  startDate DateTime @db.Date
+  endDate   DateTime @db.Date
+  reason    String?
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  Listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([listingId, startDate, endDate])
+  @@index([listingId])
+  @@index([startDate, endDate])
+}
+
+model CoHost {
+  id                            String           @id
+  listingId                     String
+  coHostId                      String
+  invitedById                   String
+  permissions                   Json
+  status                        CoHostStatus     @default(pending)
+  acceptedAt                    DateTime?
+  declinedAt                    DateTime?
+  removedAt                     DateTime?
+  role                          String           @default("co_host")
+  title                         String?
+  responsibilities              String?
+  isActive                      Boolean          @default(true)
+  lastActiveAt                  DateTime?
+  createdAt                     DateTime         @default(now())
+  updatedAt                     DateTime
+  User_CoHost_coHostIdToUser    User             @relation("CoHost_coHostIdToUser", fields: [coHostId], references: [id], onDelete: Cascade)
+  User_CoHost_invitedByIdToUser User             @relation("CoHost_invitedByIdToUser", fields: [invitedById], references: [id])
+  Listing                       Listing          @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  CoHostActivity                CoHostActivity[]
+
+  @@unique([listingId, coHostId])
+  @@index([coHostId])
+  @@index([invitedById])
+  @@index([listingId])
+  @@index([status])
+}
+
+model CoHostActivity {
+  id          String   @id
+  coHostId    String
+  action      String
+  description String
+  metadata    Json?
+  relatedId   String?
+  relatedType String?
+  createdAt   DateTime @default(now())
+  CoHost      CoHost   @relation(fields: [coHostId], references: [id], onDelete: Cascade)
+
+  @@index([action])
+  @@index([coHostId])
+  @@index([createdAt])
+}
+
+model CoHostInvitation {
+  id            String           @id
+  email         String
+  listingId     String
+  inviterId     String
+  token         String           @unique
+  permissions   Json
+  role          String           @default("co_host")
+  title         String?
+  message       String?
+  status        InvitationStatus @default(pending)
+  sentAt        DateTime         @default(now())
+  acceptedAt    DateTime?
+  declinedAt    DateTime?
+  expiresAt     DateTime
+  declineReason String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime
+  User          User             @relation(fields: [inviterId], references: [id])
+  Listing       Listing          @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([email])
+  @@index([expiresAt])
+  @@index([inviterId])
+  @@index([listingId])
+  @@index([status])
+  @@index([token])
+}
+
+model Conversation {
+  id                                     String    @id
+  participant1Id                         String
+  participant2Id                         String
+  listingId                              String?
+  bookingId                              String?
+  lastMessageId                          String?
+  lastMessageAt                          DateTime?
+  unreadCount1                           Int       @default(0)
+  unreadCount2                           Int       @default(0)
+  createdAt                              DateTime  @default(now())
+  updatedAt                              DateTime
+  Booking                                Booking?  @relation(fields: [bookingId], references: [id])
+  Listing                                Listing?  @relation(fields: [listingId], references: [id])
+  User_Conversation_participant1IdToUser User      @relation("Conversation_participant1IdToUser", fields: [participant1Id], references: [id])
+  User_Conversation_participant2IdToUser User      @relation("Conversation_participant2IdToUser", fields: [participant2Id], references: [id])
+  Message                                Message[]
+
+  @@unique([participant1Id, participant2Id, listingId])
+  @@index([lastMessageAt])
+  @@index([participant1Id])
+  @@index([participant2Id])
+}
+
+model CurrencyRate {
+  id           String       @id
+  fromCurrency CurrencyCode
+  toCurrency   CurrencyCode
+  rate         Decimal      @db.Decimal(10, 6)
+  validFrom    DateTime
+  validUntil   DateTime?
+  source       String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime
+
+  @@unique([fromCurrency, toCurrency, validFrom])
+  @@index([fromCurrency, toCurrency])
+  @@index([validFrom, validUntil])
+}
+
+model EmailVerification {
+  id         String    @id
+  userId     String
+  email      String
+  code       String
+  token      String
+  type       String    @default("verification")
+  isVerified Boolean   @default(false)
+  verifiedAt DateTime?
+  expiresAt  DateTime
+  attempts   Int       @default(0)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime
+  User       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([email])
+  @@index([expiresAt])
+  @@index([isVerified])
+  @@index([token])
+  @@index([userId])
+}
+
+model FavoriteListing {
+  id        String   @id
+  userId    String
+  listingId String
+  notes     String?
+  createdAt DateTime @default(now())
+  Listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, listingId])
+  @@index([listingId])
+  @@index([userId])
+}
+
+model HostPayout {
+  id            String       @id
+  hostId        String
+  amount        Decimal      @db.Decimal(10, 2)
+  currency      String       @default("QAR")
+  periodStart   DateTime
+  periodEnd     DateTime
+  bookingIds    String[]
+  bookingsCount Int
+  earnings      Decimal      @db.Decimal(10, 2)
+  serviceFee    Decimal      @db.Decimal(10, 2)
+  taxes         Decimal      @default(0) @db.Decimal(10, 2)
+  adjustments   Decimal      @default(0) @db.Decimal(10, 2)
+  status        PayoutStatus @default(pending)
+  method        String
+  processedAt   DateTime?
+  reference     String?
+  failureReason String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime
+  User          User         @relation(fields: [hostId], references: [id])
+
+  @@index([hostId])
+  @@index([periodStart, periodEnd])
+  @@index([status])
+}
+
+model Invoice {
+  id                        String    @id
+  number                    String    @unique
+  bookingId                 String    @unique
+  paymentId                 String?   @unique
+  userId                    String
+  hostId                    String
+  amount                    Decimal   @db.Decimal(10, 2)
+  currency                  String    @default("QAR")
+  status                    String
+  dueDate                   DateTime?
+  sentAt                    DateTime?
+  paidAt                    DateTime?
+  metadata                  Json?
+  createdAt                 DateTime  @default(now())
+  updatedAt                 DateTime
+  Booking                   Booking   @relation(fields: [bookingId], references: [id])
+  User_Invoice_hostIdToUser User      @relation("Invoice_hostIdToUser", fields: [hostId], references: [id])
+  Payment                   Payment?  @relation(fields: [paymentId], references: [id])
+  User_Invoice_userIdToUser User      @relation("Invoice_userIdToUser", fields: [userId], references: [id])
+
+  @@index([bookingId])
+  @@index([hostId])
+  @@index([number])
+  @@index([status])
+  @@index([userId])
+}
+
+model KycAuditLog {
+  id                                 String         @id
+  userId                             String
+  action                             KycAuditAction
+  entity                             String
+  entityId                           String
+  oldValues                          Json?
+  newValues                          Json?
+  changes                            String?
+  performedBy                        String?
+  ipAddress                          String?
+  userAgent                          String?
+  reason                             String?
+  createdAt                          DateTime       @default(now())
+  User_KycAuditLog_performedByToUser User?          @relation("KycAuditLog_performedByToUser", fields: [performedBy], references: [id])
+  User_KycAuditLog_userIdToUser      User           @relation("KycAuditLog_userIdToUser", fields: [userId], references: [id])
+
+  @@index([action])
+  @@index([createdAt])
+  @@index([entity])
+  @@index([performedBy])
+  @@index([userId])
+}
+
+model KycDocument {
+  id                                String              @id
+  userId                            String
+  type                              KycDocumentType
+  category                          KycDocumentCategory @default(identity)
+  fileName                          String
+  originalName                      String
+  fileSize                          Int
+  mimeType                          String
+  fileUrl                           String
+  thumbnailUrl                      String?
+  documentNumber                    String?
+  issueDate                         DateTime?
+  expiryDate                        DateTime?
+  issuingAuthority                  String?
+  status                            KycDocumentStatus   @default(pending)
+  verifiedAt                        DateTime?
+  rejectedAt                        DateTime?
+  rejectionReason                   String?
+  ocrText                           String?
+  ocrConfidence                     Float?
+  aiVerification                    Json?
+  reviewerId                        String?
+  reviewNotes                       String?
+  encryptionKey                     String?
+  checksum                          String
+  createdAt                         DateTime            @default(now())
+  updatedAt                         DateTime
+  User_KycDocument_reviewerIdToUser User?               @relation("KycDocument_reviewerIdToUser", fields: [reviewerId], references: [id])
+  User_KycDocument_userIdToUser     User                @relation("KycDocument_userIdToUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([category])
+  @@index([status])
+  @@index([type])
+  @@index([userId])
+  @@index([verifiedAt])
+}
+
+model KycVerification {
+  id                                    String          @id
+  userId                                String          @unique
+  firstName                             String
+  lastName                              String
+  dateOfBirth                           DateTime?
+  nationality                           String?
+  address                               String?
+  city                                  String?
+  country                               String          @default("Qatar")
+  postalCode                            String?
+  documentType                          KycDocumentType
+  documentNumber                        String
+  documentCountry                       String          @default("Qatar")
+  documentExpiry                        DateTime?
+  status                                KycStatus       @default(pending)
+  submittedAt                           DateTime        @default(now())
+  reviewedAt                            DateTime?
+  approvedAt                            DateTime?
+  rejectedAt                            DateTime?
+  reviewerId                            String?
+  rejectionReason                       String?
+  internalNotes                         String?
+  riskLevel                             KycRiskLevel    @default(low)
+  complianceFlags                       Json?
+  verificationCode                      String          @unique
+  ipAddress                             String?
+  userAgent                             String?
+  createdAt                             DateTime        @default(now())
+  updatedAt                             DateTime
+  User_KycVerification_reviewerIdToUser User?           @relation("KycVerification_reviewerIdToUser", fields: [reviewerId], references: [id])
+  User_KycVerification_userIdToUser     User            @relation("KycVerification_userIdToUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([documentType])
+  @@index([status])
+  @@index([submittedAt])
+  @@index([userId])
+  @@index([verificationCode])
+}
+
+model Listing {
+  id                      String             @id
+  hostId                  String
+  status                  ListingStatus      @default(draft)
+  title                   String
+  slug                    String?            @unique
+  description             String
+  propertyType            PropertyType
+  entirePlace             Boolean            @default(true)
+  country                 String             @default("Qatar")
+  city                    String
+  area                    String?
+  district                String?
+  coordinates             Json
+  landmarks               Json?
+  bedrooms                Int                @default(1)
+  bathrooms               Decimal            @default(1) @db.Decimal(3, 1)
+  beds                    Int                @default(1)
+  squareMeters            Int?
+  floorNumber             String?
+  totalFloors             Int?
+  maxGuests               Int                @default(4)
+  maxAdults               Int                @default(2)
+  maxChildren             Int                @default(0)
+  maxInfants              Int                @default(0)
+  inUnitFeatures          Json?
+  buildingFacilities      Json?
+  compoundAmenities       Json?
+  nearbyServices          Json?
+  safetyFeatures          Json?
+  familyFeatures          Json?
+  accessibilityFeatures   Json?
+  workFeatures            Json?
+  houseRules              String?
+  checkInInstructions     String?
+  wifiDetails             Json?
+  neighborhoodInfo        String?
+  transitInfo             String?
+  hostTips                String?
+  checkInTime             String             @default("15:00")
+  checkOutTime            String             @default("11:00")
+  flexibleCheckIn         Boolean            @default(false)
+  selfCheckIn             Boolean            @default(false)
+  nightlyPrice            Decimal?           @db.Decimal(10, 2)
+  weeklyPrice             Decimal?           @db.Decimal(10, 2)
+  monthlyPrice            Decimal            @db.Decimal(10, 2)
+  cleaningFee             Decimal?           @default(200) @db.Decimal(10, 2)
+  securityDeposit         Decimal?           @default(1000) @db.Decimal(10, 2)
+  extraGuestFee           Decimal?           @db.Decimal(10, 2)
+  lateFeePerHour          Decimal?           @db.Decimal(10, 2)
+  weeklyDiscount          Int?
+  monthlyDiscount         Int?
+  earlyBirdDiscount       Int?
+  lastMinuteDiscount      Int?
+  minNights               Int                @default(28)
+  maxNights               Int?               @default(365)
+  advanceNotice           Int                @default(3)
+  bookingWindow           Int                @default(365)
+  instantBook             Boolean            @default(false)
+  requireProfilePicture   Boolean            @default(false)
+  requireVerifiedPhone    Boolean            @default(false)
+  cancellationPolicy      String             @default("moderate")
+  utilitiesIncluded       Boolean            @default(false)
+  utilitiesCap            Decimal?           @db.Decimal(10, 2)
+  internetIncluded        Boolean            @default(true)
+  internetSpeed           String?
+  parkingIncluded         Boolean            @default(true)
+  parkingType             String?
+  photos                  Json?
+  virtualTourUrl          String?
+  videoUrl                String?
+  floorPlanUrl            String?
+  tier                    Tier               @default(standard)
+  isVerified              Boolean            @default(false)
+  verifiedAt              DateTime?
+  isFeatured              Boolean            @default(false)
+  featuredUntil           DateTime?
+  viewCount               Int                @default(0)
+  bookingCount            Int                @default(0)
+  saveCount               Int                @default(0)
+  averageRating           Float?             @default(0)
+  reviewCount             Int                @default(0)
+  metaTitle               String?
+  metaDescription         String?
+  keywords                String[]
+  isActive                Boolean            @default(false)
+  publishedAt             DateTime?
+  lastBooked              DateTime?
+  createdAt               DateTime           @default(now())
+  updatedAt               DateTime
+  buildingName            String?
+  buildingNumber          String?
+  currency                CurrencyCode       @default(QAR)
+  directions              String?
+  furnishingStatus        FurnishingStatus   @default(fully_furnished)
+  googleMapsUrl           String?
+  lastRenovated           Int?
+  postalCode              String?
+  pricesInOtherCurrencies Json?
+  rentalType              RentalType[]
+  squareFeet              Int?
+  streetName              String?
+  streetNumber            String?
+  unitNumber              String?
+  yearBuilt               Int?
+  zoneNumber              String?
+  Availability            Availability[]
+  Booking                 Booking[]
+  CalendarBlock           CalendarBlock[]
+  CoHost                  CoHost[]
+  CoHostInvitation        CoHostInvitation[]
+  Conversation            Conversation[]
+  FavoriteListing         FavoriteListing[]
+  User                    User               @relation(fields: [hostId], references: [id])
+  PriceHistory            PriceHistory[]
+  Review                  Review[]
+
+  @@index([area])
+  @@index([city])
+  @@index([coordinates], type: Gin)
+  @@index([hostId])
+  @@index([publishedAt])
+  @@index([slug])
+  @@index([status])
+  @@index([tier])
+}
+
+model ListingDraft {
+  id          String   @id
+  hostId      String
+  currentStep Int      @default(1)
+  totalSteps  Int      @default(7)
+  formData    Json
+  lastStep    Int      @default(1)
+  completed   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+  User        User     @relation(fields: [hostId], references: [id], onDelete: Cascade)
+
+  @@unique([hostId, id])
+  @@index([hostId])
+}
+
+model MaintenanceRecord {
+  id          String       @id
+  listingId   String
+  type        String
+  title       String
+  description String?
+  cost        Decimal?     @db.Decimal(10, 2)
+  currency    CurrencyCode @default(QAR)
+  performedBy String?
+  performedAt DateTime
+  nextDue     DateTime?
+  documents   Json?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime
+
+  @@index([listingId])
+  @@index([performedAt])
+  @@index([type])
+}
+
+model Message {
+  id                            String       @id
+  conversationId                String
+  senderId                      String
+  receiverId                    String
+  content                       String
+  attachments                   String[]
+  isRead                        Boolean      @default(false)
+  readAt                        DateTime?
+  isEdited                      Boolean      @default(false)
+  editedAt                      DateTime?
+  isDeleted                     Boolean      @default(false)
+  deletedAt                     DateTime?
+  createdAt                     DateTime     @default(now())
+  Conversation                  Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  User_Message_receiverIdToUser User         @relation("Message_receiverIdToUser", fields: [receiverId], references: [id])
+  User_Message_senderIdToUser   User         @relation("Message_senderIdToUser", fields: [senderId], references: [id])
+
+  @@index([conversationId])
+  @@index([createdAt])
+  @@index([isRead])
+  @@index([receiverId])
+  @@index([senderId])
+}
+
+model Notification {
+  id        String    @id
+  userId    String
+  bookingId String?
+  type      String
+  title     String
+  message   String
+  data      Json?
+  metadata  Json?
+  read      Boolean   @default(false)
+  isRead    Boolean   @default(false)
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime
+  Booking   Booking?  @relation(fields: [bookingId], references: [id])
+  User      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+  @@index([createdAt])
+  @@index([read])
+  @@index([type])
+  @@index([userId, isRead])
+}
+
+model PasswordResetToken {
+  id        String   @id
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([token])
+}
+
+model Payment {
+  id            String   @id
+  bookingId     String   @unique
+  userId        String
+  amount        Decimal  @db.Decimal(10, 2)
+  currency      String   @default("QAR")
+  method        String
+  status        String
+  transactionId String   @unique
+  metadata      Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime
+  Invoice       Invoice?
+  Booking       Booking  @relation(fields: [bookingId], references: [id])
+  User          User     @relation(fields: [userId], references: [id])
+
+  @@index([bookingId])
+  @@index([status])
+  @@index([transactionId])
+  @@index([userId])
+}
+
+model PaymentMethod {
+  id               String   @id
+  userId           String
+  cardType         String
+  maskedCardNumber String
+  last4            String
+  expiryMonth      Int
+  expiryYear       Int
+  cardholderName   String
+  isDefault        Boolean  @default(false)
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime
+  User             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([isDefault])
+  @@index([userId])
+}
+
+model PhoneVerification {
+  id          String    @id
+  userId      String
+  phoneNumber String
+  code        String
+  method      String
+  isVerified  Boolean   @default(false)
+  verifiedAt  DateTime?
+  expiresAt   DateTime
+  attempts    Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime
+  User        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+  @@index([isVerified])
+  @@index([phoneNumber])
+  @@index([userId])
+}
+
+model PriceHistory {
+  id           String    @id
+  listingId    String
+  nightlyPrice Decimal?  @db.Decimal(10, 2)
+  weeklyPrice  Decimal?  @db.Decimal(10, 2)
+  monthlyPrice Decimal   @db.Decimal(10, 2)
+  reason       String?
+  validFrom    DateTime
+  validUntil   DateTime?
+  createdAt    DateTime  @default(now())
+  Listing      Listing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId])
+  @@index([validFrom, validUntil])
+}
+
+model PropertyDocument {
+  id         String    @id
+  listingId  String
+  type       String
+  name       String
+  url        String
+  size       Int?
+  mimeType   String?
+  isVerified Boolean   @default(false)
+  verifiedAt DateTime?
+  verifiedBy String?
+  expiresAt  DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime
+
+  @@index([listingId])
+  @@index([type])
+}
+
+model PropertyRule {
+  id          String   @id
+  name        String   @unique
+  description String?
+  icon        String?
+  type        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+}
+
+model PropertyView {
+  id           String   @id
+  listingId    String
+  viewerId     String?
+  sessionId    String
+  ipAddress    String?
+  userAgent    String?
+  referrer     String?
+  viewDuration Int?
+  createdAt    DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([listingId])
+  @@index([viewerId])
+}
+
+model Review {
+  id                           String    @id
+  bookingId                    String    @unique
+  reviewerId                   String
+  revieweeId                   String
+  listingId                    String
+  overall                      Int
+  cleanliness                  Int?
+  accuracy                     Int?
+  checkIn                      Int?
+  communication                Int?
+  location                     Int?
+  value                        Int?
+  publicReview                 String?
+  privateNote                  String?
+  response                     String?
+  respondedAt                  DateTime?
+  photos                       String[]
+  isVerifiedStay               Boolean   @default(true)
+  isHidden                     Boolean   @default(false)
+  isFlagged                    Boolean   @default(false)
+  flagReason                   String?
+  createdAt                    DateTime  @default(now())
+  updatedAt                    DateTime
+  Booking                      Booking   @relation(fields: [bookingId], references: [id])
+  Listing                      Listing   @relation(fields: [listingId], references: [id])
+  User_Review_revieweeIdToUser User      @relation("Review_revieweeIdToUser", fields: [revieweeId], references: [id])
+  User_Review_reviewerIdToUser User      @relation("Review_reviewerIdToUser", fields: [reviewerId], references: [id])
+
+  @@index([listingId])
+  @@index([overall])
+  @@index([revieweeId])
+  @@index([reviewerId])
+}
+
+model SearchHistory {
+  id           String   @id
+  userId       String
+  query        Json
+  resultsCount Int
+  createdAt    DateTime @default(now())
+  User         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id
+  userId       String
+  token        String   @unique
+  ipAddress    String?
+  userAgent    String?
+  lastActivity DateTime @default(now())
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  User         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([userId])
+}
+
+model TaxInformation {
+  id                   String    @id
+  userId               String    @unique
+  taxIdType            String
+  taxId                String
+  legalName            String
+  businessType         String?
+  taxCountry           String    @default("QA")
+  taxAddress           String
+  taxCity              String
+  taxState             String?
+  taxPostalCode        String?
+  subjectToBackupWith  Boolean   @default(false)
+  exemptFromBackupWith Boolean   @default(false)
+  taxWithholdingRate   Decimal?  @db.Decimal(5, 2)
+  taxDocuments         Json?
+  w9FormUrl            String?
+  w8FormUrl            String?
+  qatarTaxCertUrl      String?
+  isComplete           Boolean   @default(false)
+  isVerified           Boolean   @default(false)
+  verifiedAt           DateTime?
+  reviewedBy           String?
+  fatcaStatus          String?
+  crsStatus            String?
+  requiresReporting    Boolean   @default(true)
+  submittedAt          DateTime?
+  lastReviewedAt       DateTime?
+  notes                String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime
+  phoneNumber          String    @default("")
+  User                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([isComplete])
+  @@index([isVerified])
+  @@index([userId])
+}
+
+model Transaction {
+  id            String    @id
+  bookingId     String?
+  type          String
+  amount        Decimal   @db.Decimal(10, 2)
+  currency      String    @default("QAR")
+  status        String
+  method        String
+  reference     String?
+  metadata      Json?
+  processedAt   DateTime?
+  failedAt      DateTime?
+  failureReason String?
+  createdAt     DateTime  @default(now())
+  Booking       Booking?  @relation(fields: [bookingId], references: [id])
+
+  @@index([bookingId])
+  @@index([status])
+  @@index([type])
+}
+
+model User {
+  id                                               String              @id
+  email                                            String              @unique
+  passwordHash                                     String
+  firstName                                        String?
+  lastName                                         String?
+  name                                             String?
+  username                                         String?             @unique
+  phone                                            String?
+  phoneVerified                                    Boolean             @default(false)
+  role                                             UserRole            @default(guest)
+  isHost                                           Boolean             @default(false)
+  isAdmin                                          Boolean             @default(false)
+  hostVerified                                     VerificationStatus  @default(unverified)
+  hostSince                                        DateTime?
+  responseRate                                     Float?
+  responseTime                                     Int?
+  totalEarnings                                    Decimal?            @default(0) @db.Decimal(12, 2)
+  governmentId                                     String?
+  governmentIdType                                 String?
+  idVerifiedAt                                     DateTime?
+  propertyDocs                                     Json?
+  tradeLicense                                     String?
+  bankName                                         String?
+  accountNumber                                    String?
+  accountHolderName                                String?
+  iban                                             String?
+  swiftCode                                        String?
+  bankVerifiedAt                                   DateTime?
+  bio                                              String?
+  profileImage                                     String?
+  coverImage                                       String?
+  language                                         String              @default("en")
+  currency                                         String              @default("QAR")
+  emailNotifications                               Boolean             @default(true)
+  smsNotifications                                 Boolean             @default(true)
+  pushNotifications                                Boolean             @default(true)
+  marketingEmails                                  Boolean             @default(false)
+  twoFactorEnabled                                 Boolean             @default(false)
+  twoFactorSecret                                  String?
+  emailVerifiedAt                                  DateTime?
+  lastLoginAt                                      DateTime?
+  lastActiveAt                                     DateTime?
+  suspendedAt                                      DateTime?
+  deletedAt                                        DateTime?
+  createdAt                                        DateTime            @default(now())
+  updatedAt                                        DateTime
+  notificationSettings                             Json?
+  privacySettings                                  Json?
+  timezone                                         String              @default("Asia/Qatar")
+  emailVerified                                    Boolean             @default(false)
+  phoneNumber                                      String?
+  phoneVerifiedAt                                  DateTime?
+  BankAccount                                      BankAccount[]
+  Booking_Booking_guestIdToUser                    Booking[]           @relation("Booking_guestIdToUser")
+  Booking_Booking_hostIdToUser                     Booking[]           @relation("Booking_hostIdToUser")
+  CoHost_CoHost_coHostIdToUser                     CoHost[]            @relation("CoHost_coHostIdToUser")
+  CoHost_CoHost_invitedByIdToUser                  CoHost[]            @relation("CoHost_invitedByIdToUser")
+  CoHostInvitation                                 CoHostInvitation[]
+  Conversation_Conversation_participant1IdToUser   Conversation[]      @relation("Conversation_participant1IdToUser")
+  Conversation_Conversation_participant2IdToUser   Conversation[]      @relation("Conversation_participant2IdToUser")
+  EmailVerification                                EmailVerification[]
+  FavoriteListing                                  FavoriteListing[]
+  HostPayout                                       HostPayout[]
+  Invoice_Invoice_hostIdToUser                     Invoice[]           @relation("Invoice_hostIdToUser")
+  Invoice_Invoice_userIdToUser                     Invoice[]           @relation("Invoice_userIdToUser")
+  KycAuditLog_KycAuditLog_performedByToUser        KycAuditLog[]       @relation("KycAuditLog_performedByToUser")
+  KycAuditLog_KycAuditLog_userIdToUser             KycAuditLog[]       @relation("KycAuditLog_userIdToUser")
+  KycDocument_KycDocument_reviewerIdToUser         KycDocument[]       @relation("KycDocument_reviewerIdToUser")
+  KycDocument_KycDocument_userIdToUser             KycDocument[]       @relation("KycDocument_userIdToUser")
+  KycVerification_KycVerification_reviewerIdToUser KycVerification[]   @relation("KycVerification_reviewerIdToUser")
+  KycVerification_KycVerification_userIdToUser     KycVerification?    @relation("KycVerification_userIdToUser")
+  Listing                                          Listing[]
+  ListingDraft                                     ListingDraft[]
+  Message_Message_receiverIdToUser                 Message[]           @relation("Message_receiverIdToUser")
+  Message_Message_senderIdToUser                   Message[]           @relation("Message_senderIdToUser")
+  Notification                                     Notification[]
+  Payment                                          Payment[]
+  PaymentMethod                                    PaymentMethod[]
+  PhoneVerification                                PhoneVerification[]
+  Review_Review_revieweeIdToUser                   Review[]            @relation("Review_revieweeIdToUser")
+  Review_Review_reviewerIdToUser                   Review[]            @relation("Review_reviewerIdToUser")
+  SearchHistory                                    SearchHistory[]
+  Session                                          Session[]
+  TaxInformation                                   TaxInformation?
+
+  @@index([email])
+  @@index([isHost])
+  @@index([role])
+  @@index([username])
+}
+
+enum UserRole {
+  guest
+  host
+  both
+  admin
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+  IN_PROGRESS
+}
+
+enum CoHostStatus {
+  pending
+  accepted
+  declined
+  removed
+  suspended
+}
+
+enum CurrencyCode {
+  QAR
+  USD
+  EUR
+  GBP
+  AED
+  SAR
+  KWD
+  BHD
+  OMR
+  EGP
+  INR
+  PKR
+  PHP
+}
+
+enum FurnishingStatus {
+  fully_furnished
+  semi_furnished
+  unfurnished
+}
+
+enum InvitationStatus {
+  pending
+  accepted
+  declined
+  expired
+  cancelled
+}
+
+enum KycAuditAction {
+  submitted
+  reviewed
+  approved
+  rejected
+  document_uploaded
+  document_verified
+  document_rejected
+  status_changed
+  notes_added
+  flagged
+  unflagged
+  escalated
+}
+
+enum KycDocumentCategory {
+  identity
+  address
+  business
+  financial
+  legal
+  photo
+  supplementary
+}
+
+enum KycDocumentStatus {
+  pending
+  processing
+  verified
+  rejected
+  expired
+  replaced
+}
+
+enum KycDocumentType {
+  passport
+  national_id
+  drivers_license
+  residence_permit
+  utility_bill
+  bank_statement
+  rental_agreement
+  government_letter
+  business_license
+  tax_certificate
+  commercial_registration
+  trade_license
+  visa
+  work_permit
+  birth_certificate
+  marriage_certificate
+  selfie
+  document_selfie
+  bank_verification
+  iban_certificate
+}
+
+enum KycRiskLevel {
+  low
+  medium
+  high
+  critical
+}
+
+enum KycStatus {
+  pending
+  under_review
+  approved
+  rejected
+  expired
+  flagged
+  suspended
+}
+
+enum ListingStatus {
+  draft
+  pending_review
+  approved
+  active
+  inactive
+  suspended
+  deleted
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  PARTIALLY_PAID
+  REFUNDED
+  FAILED
+}
+
+enum PayoutStatus {
+  pending
+  processing
+  completed
+  failed
+  cancelled
+}
+
+enum PropertyType {
+  apartment
+  villa
+  studio
+  townhouse
+  penthouse
+  compound_villa
+  room
+  duplex
+  chalet
+  farm_house
+  shared_room
+}
+
+enum RentalType {
+  short_term
+  mid_term
+  long_term
+}
+
+enum Tier {
+  standard
+  gold
+  premium
+}
+
+enum VerificationStatus {
+  unverified
+  pending
+  verified
+  rejected
+}
