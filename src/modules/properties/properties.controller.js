@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Put, Param, Delete, Query, UseGuards, Request } from '@nestjs/common';
 import { PropertiesService } from './properties.service.js';
 import { CreatePropertyDto } from './dto/create-property.dto.js';
 import { UpdatePropertyDto } from './dto/update-property.dto.js';
@@ -23,16 +23,29 @@ export class PropertiesController {
     return this.propertiesService.findAll(query);
   }
 
-  // Get properties by host
+  // Search properties (alternative endpoint for compatibility)
+  @Get('search')
+  async searchProperties(@Query() query) {
+    return this.propertiesService.findAll(query);
+  }
+
+  // Get properties by host  
   @Get('host/:hostId')
   async findByHost(@Param('hostId') hostId, @Query() query) {
     return this.propertiesService.findByHost(hostId, query);
   }
 
-  // Get user's own properties
+  // Get user's own properties (multiple endpoint compatibility)
   @Get('my-properties')
   @UseGuards(JwtStrategy)
   async getMyProperties(@Request() req, @Query() query) {
+    return this.propertiesService.findByHost(req.user.id, query);
+  }
+
+  // Get host properties (frontend compatibility)
+  @Get('host')
+  @UseGuards(JwtStrategy)
+  async getHostProperties(@Request() req, @Query() query) {
     return this.propertiesService.findByHost(req.user.id, query);
   }
 
@@ -63,10 +76,17 @@ export class PropertiesController {
     return this.propertiesService.findOne(id, userId);
   }
 
-  // Update property
+  // Update property (PATCH method)
   @Patch(':id')
   @UseGuards(JwtStrategy)
   async update(@Param('id') id, @Request() req, @Body() updatePropertyDto) {
+    return this.propertiesService.update(id, req.user.id, updatePropertyDto);
+  }
+
+  // Update property (PUT method for frontend compatibility)
+  @Put(':id')
+  @UseGuards(JwtStrategy)
+  async updateProperty(@Param('id') id, @Request() req, @Body() updatePropertyDto) {
     return this.propertiesService.update(id, req.user.id, updatePropertyDto);
   }
 

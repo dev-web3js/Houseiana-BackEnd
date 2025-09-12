@@ -9,6 +9,9 @@ import { PropertiesModule } from './modules/properties/properties.module.js';
 import { BookingsModule } from './modules/bookings/bookings.module.js';
 import { UsersModule } from './modules/users/users.module.js';
 import { UploadModule } from './modules/upload/upload.module.js';
+import { VerificationModule } from './modules/verification/verification.module.js';
+import { ReviewsModule } from './modules/reviews/reviews.module.js';
+import { HealthModule } from './modules/health/health.module.js';
 import { LoggerMiddleware } from './common/middleware/logger.middleware.js';
 import { RolesGuard } from './common/guards/roles.guard.js';
 
@@ -24,6 +27,9 @@ import { RolesGuard } from './common/guards/roles.guard.js';
     BookingsModule,
     UsersModule,
     UploadModule,
+    VerificationModule,
+    ReviewsModule,
+    HealthModule,
   ],
   controllers: [AppController],
   providers: [
