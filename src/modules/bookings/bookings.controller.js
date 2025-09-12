@@ -1,8 +1,10 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, Request } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { BookingsService } from './bookings.service.js';
 import { CreateBookingDto } from './dto/create-booking.dto.js';
 import { JwtStrategy } from '../auth/guards/jwt.guard.js';
 
+@ApiTags('Bookings')
 @Controller('api/bookings')
 export class BookingsController {
   constructor(bookingsService) {

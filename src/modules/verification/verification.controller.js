@@ -1,7 +1,9 @@
 import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { VerificationService } from './verification.service.js';
 import { JwtStrategy } from '../auth/guards/jwt.guard.js';
 
+@ApiTags('Verification')
 @Controller('api/verification')
 export class VerificationController {
   constructor(verificationService) {

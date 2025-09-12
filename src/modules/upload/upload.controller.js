@@ -1,8 +1,10 @@
 import { Controller, Post, Delete, Get, Body, Param, UseInterceptors, UploadedFile, UploadedFiles, UseGuards, Query } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { UploadService } from './upload.service.js';
 import { JwtStrategy } from '../auth/guards/jwt.guard.js';
 
+@ApiTags('Upload')
 @Controller('api/upload')
 export class UploadController {
   constructor(uploadService) {

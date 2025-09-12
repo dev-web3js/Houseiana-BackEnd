@@ -1,7 +1,9 @@
 import { Controller, Get, Post, Body, Patch, Param, Query, Delete, UseGuards, Request } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { NotificationsService } from './notifications.service.js';
 import { JwtStrategy } from '../auth/guards/jwt.guard.js';
 
+@ApiTags('Notifications')
 @Controller('api/notifications')
 export class NotificationsController {
   constructor(notificationsService) {

@@ -1,7 +1,9 @@
 import { Controller, Get, Post, Body, Patch, Param, Query, Delete, UseGuards, Request } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { MessagesService } from './messages.service.js';
 import { JwtStrategy } from '../auth/guards/jwt.guard.js';
 
+@ApiTags('Messages')
 @Controller('api/messages')
 export class MessagesController {
   constructor(messagesService) {

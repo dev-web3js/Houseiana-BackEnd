@@ -1,7 +1,9 @@
 import { Controller, Get, Post, Body, Patch, Param, Query, UseGuards, Request } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { TaxFormsService } from './tax-forms.service.js';
 import { JwtStrategy } from '../auth/guards/jwt.guard.js';
 
+@ApiTags('Tax Forms')
 @Controller('api/tax-forms')
 export class TaxFormsController {
   constructor(taxFormsService) {

@@ -1,7 +1,9 @@
 import { Controller, Get, Post, Body, Patch, Param, Query, UseGuards, Request } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { KycService } from './kyc.service.js';
 import { JwtStrategy } from '../auth/guards/jwt.guard.js';
 
+@ApiTags('KYC')
 @Controller('api/kyc')
 export class KycController {
   constructor(kycService) {

@@ -1,6 +1,8 @@
 import { Controller, Get, Query } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { SearchService } from './search.service.js';
 
+@ApiTags('Search')
 @Controller('api/search')
 export class SearchController {
   constructor(searchService) {
