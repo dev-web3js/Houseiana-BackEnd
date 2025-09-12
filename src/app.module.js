@@ -14,6 +14,10 @@ import { ReviewsModule } from './modules/reviews/reviews.module.js';
 import { HealthModule } from './modules/health/health.module.js';
 import { EmailModule } from './modules/email/email.module.js';
 import { TaxFormsModule } from './modules/tax-forms/tax-forms.module.js';
+import { KycModule } from './modules/kyc/kyc.module.js';
+import { MessagesModule } from './modules/messages/messages.module.js';
+import { NotificationsModule } from './modules/notifications/notifications.module.js';
+import { SearchModule } from './modules/search/search.module.js';
 import { LoggerMiddleware } from './common/middleware/logger.middleware.js';
 import { RolesGuard } from './common/guards/roles.guard.js';
 
@@ -34,6 +38,10 @@ import { RolesGuard } from './common/guards/roles.guard.js';
     HealthModule,
     EmailModule,
     TaxFormsModule,
+    KycModule,
+    MessagesModule,
+    NotificationsModule,
+    SearchModule,
   ],
   controllers: [AppController],
   providers: [
