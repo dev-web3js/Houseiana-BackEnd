@@ -60,7 +60,7 @@ model BankAccount {
   branchCode        String?
   bankAddress       String?
   accountType       String    @default("savings")
-  currency          String    @default("QAR")
+  currency          String    @default("USD")
   isDefault         Boolean   @default(false)
   isActive          Boolean   @default(true)
   isVerified        Boolean   @default(false)
@@ -312,7 +312,7 @@ model HostPayout {
   id            String       @id
   hostId        String
   amount        Decimal      @db.Decimal(10, 2)
-  currency      String       @default("QAR")
+  currency      String       @default("USD")
   periodStart   DateTime
   periodEnd     DateTime
   bookingIds    String[]
@@ -343,7 +343,7 @@ model Invoice {
   userId                    String
   hostId                    String
   amount                    Decimal   @db.Decimal(10, 2)
-  currency                  String    @default("QAR")
+  currency                  String    @default("USD")
   status                    String
   dueDate                   DateTime?
   sentAt                    DateTime?
@@ -434,11 +434,11 @@ model KycVerification {
   nationality                           String?
   address                               String?
   city                                  String?
-  country                               String          @default("Qatar")
+  country                               String?
   postalCode                            String?
   documentType                          KycDocumentType
   documentNumber                        String
-  documentCountry                       String          @default("Qatar")
+  documentCountry                       String?
   documentExpiry                        DateTime?
   status                                KycStatus       @default(pending)
   submittedAt                           DateTime        @default(now())
@@ -474,7 +474,7 @@ model Listing {
   description             String
   propertyType            PropertyType
   entirePlace             Boolean            @default(true)
-  country                 String             @default("Qatar")
+  country                 String?
   city                    String
   area                    String?
   district                String?
@@ -557,7 +557,7 @@ model Listing {
   updatedAt               DateTime
   buildingName            String?
   buildingNumber          String?
-  currency                CurrencyCode       @default(QAR)
+  currency                CurrencyCode       @default(USD)
   directions              String?
   furnishingStatus        FurnishingStatus   @default(fully_furnished)
   googleMapsUrl           String?
@@ -615,7 +615,7 @@ model MaintenanceRecord {
   title       String
   description String?
   cost        Decimal?     @db.Decimal(10, 2)
-  currency    CurrencyCode @default(QAR)
+  currency    CurrencyCode @default(USD)
   performedBy String?
   performedAt DateTime
   nextDue     DateTime?
@@ -693,7 +693,7 @@ model Payment {
   bookingId     String   @unique
   userId        String
   amount        Decimal  @db.Decimal(10, 2)
-  currency      String   @default("QAR")
+  currency      String   @default("USD")
   method        String
   status        String
   transactionId String   @unique
@@ -915,7 +915,7 @@ model Transaction {
   bookingId     String?
   type          String
   amount        Decimal   @db.Decimal(10, 2)
-  currency      String    @default("QAR")
+  currency      String    @default("USD")
   status        String
   method        String
   reference     String?
@@ -964,7 +964,7 @@ model User {
   profileImage                                     String?
   coverImage                                       String?
   language                                         String              @default("en")
-  currency                                         String              @default("QAR")
+  currency                                         String              @default("USD")
   emailNotifications                               Boolean             @default(true)
   smsNotifications                                 Boolean             @default(true)
   pushNotifications                                Boolean             @default(true)
@@ -980,7 +980,7 @@ model User {
   updatedAt                                        DateTime
   notificationSettings                             Json?
   privacySettings                                  Json?
-  timezone                                         String              @default("Asia/Qatar")
+  timezone                                         String              @default("UTC")
   emailVerified                                    Boolean             @default(false)
   phoneNumber                                      String?
   phoneVerifiedAt                                  DateTime?
@@ -1048,10 +1048,12 @@ enum CoHostStatus {
 }
 
 enum CurrencyCode {
-  QAR
   USD
   EUR
   GBP
+  QAR
+  AUD
+  CAD
   AED
   SAR
   KWD
@@ -1061,6 +1063,11 @@ enum CurrencyCode {
   INR
   PKR
   PHP
+  JPY
+  CHF
+  SEK
+  NOK
+  DKK
 }
 
 enum FurnishingStatus {

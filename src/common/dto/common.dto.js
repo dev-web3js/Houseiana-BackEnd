@@ -57,7 +57,7 @@ export class UserDto {
   @ApiProperty({ example: 'john_doe', description: 'Username', required: false })
   username;
 
-  @ApiProperty({ example: '+974 1234 5678', description: 'Phone number', required: false })
+  @ApiProperty({ example: '+1 (555) 123-4567', description: 'Phone number', required: false })
   phone;
 
   @ApiProperty({ example: 'guest', enum: ['guest', 'host', 'both', 'admin'], description: 'User role' })
@@ -84,7 +84,7 @@ export class PropertyDto {
   @ApiProperty({ example: 'clp1234567890', description: 'Property unique identifier' })
   id;
 
-  @ApiProperty({ example: 'Luxury Apartment in The Pearl', description: 'Property title' })
+  @ApiProperty({ example: 'Luxury Apartment in Manhattan', description: 'Property title' })
   title;
 
   @ApiProperty({ example: 'Beautiful 2-bedroom apartment with stunning views', description: 'Property description' })
@@ -93,10 +93,10 @@ export class PropertyDto {
   @ApiProperty({ example: 'apartment', enum: ['apartment', 'villa', 'studio', 'townhouse', 'penthouse'], description: 'Property type' })
   propertyType;
 
-  @ApiProperty({ example: 'Doha', description: 'City location' })
+  @ApiProperty({ example: 'New York', description: 'City location' })
   city;
 
-  @ApiProperty({ example: 'The Pearl', description: 'Area within city', required: false })
+  @ApiProperty({ example: 'Manhattan', description: 'Area within city', required: false })
   area;
 
   @ApiProperty({ example: 2, description: 'Number of bedrooms' })
@@ -108,10 +108,10 @@ export class PropertyDto {
   @ApiProperty({ example: 4, description: 'Maximum number of guests' })
   maxGuests;
 
-  @ApiProperty({ example: 5000, description: 'Monthly price in QAR' })
+  @ApiProperty({ example: 3500, description: 'Monthly price in USD' })
   monthlyPrice;
 
-  @ApiProperty({ example: 200, description: 'Cleaning fee in QAR', required: false })
+  @ApiProperty({ example: 150, description: 'Cleaning fee in USD', required: false })
   cleaningFee;
 
   @ApiProperty({ example: true, description: 'Whether property is active' })
@@ -153,7 +153,7 @@ export class BookingDto {
   @ApiProperty({ example: 6, description: 'Total number of nights' })
   totalNights;
 
-  @ApiProperty({ example: 30000, description: 'Total price in QAR' })
+  @ApiProperty({ example: 2100, description: 'Total price in USD' })
   totalPrice;
 
   @ApiProperty({ example: 'CONFIRMED', enum: ['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED'], description: 'Booking status' })
@@ -171,19 +171,19 @@ export class SearchQueryDto {
   @ApiProperty({ example: 'luxury apartment', description: 'Search query text', required: false })
   q;
 
-  @ApiProperty({ example: 'Doha', description: 'City filter', required: false })
+  @ApiProperty({ example: 'New York', description: 'City filter', required: false })
   city;
 
-  @ApiProperty({ example: 'The Pearl', description: 'Area filter', required: false })
+  @ApiProperty({ example: 'Manhattan', description: 'Area filter', required: false })
   area;
 
   @ApiProperty({ example: 'apartment', description: 'Property type filter', required: false })
   propertyType;
 
-  @ApiProperty({ example: 3000, description: 'Minimum price in QAR', required: false })
+  @ApiProperty({ example: 2000, description: 'Minimum price in USD', required: false })
   minPrice;
 
-  @ApiProperty({ example: 8000, description: 'Maximum price in QAR', required: false })
+  @ApiProperty({ example: 5000, description: 'Maximum price in USD', required: false })
   maxPrice;
 
   @ApiProperty({ example: 2, description: 'Minimum bedrooms', required: false })

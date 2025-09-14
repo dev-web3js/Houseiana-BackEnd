@@ -26,10 +26,10 @@ export class PropertiesController {
       type: 'object',
       properties: {
         id: { type: 'string', example: 'clp1234567890' },
-        title: { type: 'string', example: 'Luxury Apartment in The Pearl' },
+        title: { type: 'string', example: 'Luxury Apartment in Manhattan' },
         propertyType: { type: 'string', example: 'apartment' },
-        city: { type: 'string', example: 'Doha' },
-        monthlyPrice: { type: 'number', example: 5000 }
+        city: { type: 'string', example: 'New York' },
+        monthlyPrice: { type: 'number', example: 3500 }
       }
     }
   })

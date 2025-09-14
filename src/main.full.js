@@ -65,7 +65,7 @@ async function bootstrap() {
     .setDescription(`
       🏠 **Houseiana Backend API Documentation**
       
-      Comprehensive REST API for the Houseiana platform - Qatar's premier short-term rental marketplace.
+      Comprehensive REST API for the Houseiana platform - World-class global short-term rental marketplace.
       
       ## Features
       - 🔐 **Authentication & Authorization** - JWT-based user authentication
@@ -81,10 +81,11 @@ async function bootstrap() {
       Most endpoints require JWT token authentication. Include the token in the Authorization header:
       \`Authorization: Bearer <your_jwt_token>\`
       
-      ## Qatar Market Features
-      - QAR currency support
-      - Local areas (The Pearl, West Bay, Lusail, etc.)
-      - Arabic and English content support
+      ## Global Platform Features
+      - Multi-currency support (USD, EUR, GBP, QAR, AUD, CAD and more)
+      - Multi-language translation support (20+ languages)
+      - Regional compliance frameworks
+      - Worldwide property locations
     `)
     .setVersion('1.0.0')
     .setContact(
