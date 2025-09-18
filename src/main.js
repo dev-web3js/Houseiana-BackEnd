@@ -1,3 +1,5 @@
+// Tracing will be initialized inside bootstrap function
+
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import rateLimit from 'express-rate-limit';
@@ -5,8 +7,34 @@ import helmet from 'helmet';
 import compression from 'compression';
 import { AppModule } from './app.module.js';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter.js';
+import { secretsService } from './config/secrets.js';
+// import { TracingMiddleware, shutdownTracing } from './tracing.js';
 
 async function bootstrap() {
+  try {
+    console.log('🚀 Starting Houseiana Backend...');
+
+    // Initialize tracing if enabled
+    if (process.env.ENABLE_TRACING !== 'false') {
+      try {
+        const { initializeTracing } = await import('./tracing.js');
+        initializeTracing();
+        console.log('✅ Tracing initialized');
+      } catch (error) {
+        console.warn('⚠️  Tracing initialization failed, continuing without tracing:', error.message);
+      }
+    }
+
+    // Load secrets in production, but don't fail startup if secrets fail
+    if (process.env.NODE_ENV === 'production') {
+      try {
+        await secretsService.loadSecrets();
+        console.log('✅ Secrets loaded successfully');
+      } catch (error) {
+        console.warn('⚠️  Failed to load secrets from AWS Secrets Manager:', error.message);
+        console.log('🔄 Continuing with environment variables...');
+      }
+    }
   const app = await NestFactory.create(AppModule);
 
   // Security middleware
@@ -33,7 +61,10 @@ async function bootstrap() {
 
   // Compression middleware
   app.use(compression());
-  
+
+  // Tracing middleware
+  // app.use(new TracingMiddleware().use);
+
   // Enable CORS for frontend connection
   app.enableCors({
     origin: [
@@ -61,15 +92,35 @@ async function bootstrap() {
   // Set global prefix
   app.setGlobalPrefix('api', { exclude: ['/'] });
   
-  const port = process.env.PORT || 5001;
+  const port = process.env.PORT || 3000;
   await app.listen(port);
-  
+
   console.log(`🚀 Server running on http://localhost:${port}`);
   console.log(`📚 API Documentation: http://localhost:${port}/api`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+
+  } catch (error) {
+    console.error('❌ Error starting server:', error);
+    // await shutdownTracing();
+    process.exit(1);
+  }
 }
 
-bootstrap().catch(err => {
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  console.log('🛑 SIGTERM received, shutting down gracefully...');
+  // await shutdownTracing();
+  process.exit(0);
+});
+
+process.on('SIGINT', async () => {
+  console.log('🛑 SIGINT received, shutting down gracefully...');
+  // await shutdownTracing();
+  process.exit(0);
+});
+
+bootstrap().catch(async (err) => {
   console.error('❌ Error starting server:', err);
+  // await shutdownTracing();
   process.exit(1);
 });
