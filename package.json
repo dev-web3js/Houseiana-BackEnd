@@ -11,9 +11,16 @@
     "start:dev": "nodemon",
     "test": "jest",
     "test:cov": "jest --coverage",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "build": "echo 'Build completed - using Babel at runtime'",
+    "migrate:deploy": "npx prisma migrate deploy",
+    "azure:deploy": "./scripts/azure-deploy.sh",
+    "azure:logs": "az webapp log tail --name houseiana-backend --resource-group houseiana-rg",
+    "azure:restart": "az webapp restart --name houseiana-backend --resource-group houseiana-rg"
   },
   "dependencies": {
+    "@azure/identity": "^4.0.1",
+    "@azure/keyvault-secrets": "^4.8.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
